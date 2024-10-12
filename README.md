@@ -48,3 +48,9 @@ export default tseslint.config({
   },
 })
 ```
+
+
+## To get this running locally
+- Install Wrangler CLI
+- npm run build
+- npx wrangler pages dev dist
