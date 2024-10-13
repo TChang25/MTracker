@@ -49,6 +49,8 @@ export default tseslint.config({
 })
 ```
 
+## run the db script to locally set up the db
+npx wrangler d1 execute DB --local --file=./sqldb/initializing/db.sql 
 
 ## To get this running locally
 - Install Wrangler CLI

@@ -27,7 +27,6 @@ const formSchema = z.object({
 
 function Login() {
 
-
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
             defaultValues: {
@@ -37,8 +36,10 @@ function Login() {
     })
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        let url = 'http://127.0.0.1:8888/api/login';
-        alert("You're gay");
+        // Get the base URL (pathname without the current route)
+        const endpoint = '/api/login';
+        const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); 
+        let url = baseUrl + endpoint
         console.log(url);
         try {
         const response = await fetch(url, {
@@ -52,8 +53,10 @@ function Login() {
         if (!response.ok) {
             throw new Error(`Error: ${response.statusText}`);
         }
-
+        console.log(response);
+        
         const data = await response.json();
+        console.log(data);
         return data; // Handle your response data as needed
 
         } catch (error) {
@@ -107,7 +110,7 @@ function Login() {
                             <Button className="min-w-full" type="submit">Sign in</Button>
                         </form>
                     </Form>
-                    <NavLink to="/Register" className="text-sm font-medium leading-none cursor-pointer select-none"> Already have an account?</NavLink>
+                    <NavLink to="/Register" className="text-sm font-medium leading-none cursor-pointer select-none"> Don't have an account?</NavLink>
                 </CardContent>
             </Card>
 

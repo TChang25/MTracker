@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "./components/ui/card"
 import { NavLink } from "react-router-dom";
+import { useState } from "react"
 
 const formSchema = z.object({
     first_name: z.string().min(1, {
@@ -45,6 +46,8 @@ const formSchema = z.object({
 
 function Register() {
 
+    const [error, setError] = useState('');
+
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
             defaultValues: {
@@ -59,32 +62,81 @@ function Register() {
 
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        let url = 'http://127.0.0.1:8888/api/register';
+        if (error === 'username'){
+            form.setError('username', {
+                type: 'manual',
+                message: 'Username already exists! Enter a different one.',
+            }, {shouldFocus: true});
+            return;
+        }
+        if (error === 'email'){
+            form.setError('email', {
+                type: 'manual',
+                message: 'Email already exists! Enter a different one.',
+            }, {shouldFocus: true});
+            return;
+        }
+
+
+        console.log(form.formState.errors);
+        const endpoint = '/api/register';
+        const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); 
+        let url = baseUrl + endpoint;
         console.log(url);
         try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(values),
-        });
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(values),
+            })
+            const data = await response.json();
+            if (!response.ok) {
+                if (response.status === 409){ // Username already exists!
+                    response.text().then(text => {
+                        switch (text){
+                            case "Username already exists!":
+                                form.setError('username', {
+                                    type: 'manual',
+                                    message: 'Username already exists! Enter a different one.',
+                                }, {shouldFocus: true});
+                                setError('username');
+                                return;
+                            case "Email already exists!":
+                                form.setError('email', {
+                                    type: 'manual',
+                                    message: 'Email already exists! Enter a different one.',
+                                }, {shouldFocus: true});
+                                setError('email');
+                                return;
+                            default:
+                                throw new Error("An unknown error occurred.");
+                        }
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
+                    })
 
-        const data = await response.json();
-        return data; // Handle your response data as needed
+                   
+                    
+    
+                }
+                throw new Error(`Error: ${response.statusText}`);
+            }
 
+            console.log(data);
+            return data; // Handle your response data as needed
         } catch (error) {
-        console.error('Failed to Sign in:', error);
-        throw error; // Optionally re-throw or handle the error
+            console.error('Failed to Register:', error);
         }
-        console.log(values)
     }
-
-
+        
+    
+    const onFormError = (e: any) => {
+        console.log("Start Form onFormError");
+        console.log(e)
+        console.log("End Form onFormError");
+    }
+ 
     return (
     <>
         <div className="flex flex-col items-center space-y-4">
@@ -96,8 +148,8 @@ function Register() {
             <Card className="m-10" style={{width: 400}}>
                 <CardContent className="m-5">
                     <Form {...form}>
-                        <form  onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
+                        <form onSubmit={form.handleSubmit(onSubmit, onFormError)} className="space-y-6">
+                            <FormField
                             control={form.control}
                             name="first_name"
                             render={({ field }) => (
@@ -136,7 +188,24 @@ function Register() {
                                 <FormItem>
                                 <FormLabel>Username</FormLabel>
                                 <FormControl>
-                                    <Input placeholder="Username" {...field} />
+                                    <Input placeholder="Username" {...field}  onChange={(e) => {
+                                        field.onChange(e);
+                                        setError('')}} />
+                                </FormControl>
+                                <FormMessage />
+                                </FormItem>
+                            )}
+                            />
+
+
+                            <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                                <FormItem>
+                                <FormLabel>Email</FormLabel>
+                                <FormControl>
+                                    <Input className=" min-w-100" type="email" placeholder="Email" {...field} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -171,10 +240,11 @@ function Register() {
                             )}
                             />
 
+
                             <Button className="min-w-full" type="submit">Register</Button>
                         </form>
                     </Form>
-                    <NavLink to="/Login" className="text-sm font-medium leading-none cursor-pointer select-none"> Don't have an account?</NavLink>
+                    <NavLink to="/Login" className="text-sm font-medium leading-none cursor-pointer select-none"> Already have an account?</NavLink>
                 </CardContent>
             </Card>
 
