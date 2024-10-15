@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "./components/ui/card"
-import { NavLink } from "react-router-dom";
+import { Navigate, NavLink } from "react-router-dom";
 import { useState } from "react"
+import { DotLottieReact } from "@lottiefiles/dotlottie-react"
 
 const formSchema = z.object({
     first_name: z.string().min(1, {
@@ -47,6 +48,8 @@ const formSchema = z.object({
 function Register() {
 
     const [error, setError] = useState('');
+    const [register, setRegister] = useState(false);
+    const [login, setLogin] = useState(false);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -92,38 +95,33 @@ function Register() {
                 body: JSON.stringify(values),
             })
             const data = await response.json();
+            console.log(data.message);
             if (!response.ok) {
                 if (response.status === 409){ // Username already exists!
-                    response.text().then(text => {
-                        switch (text){
-                            case "Username already exists!":
-                                form.setError('username', {
-                                    type: 'manual',
-                                    message: 'Username already exists! Enter a different one.',
-                                }, {shouldFocus: true});
-                                setError('username');
-                                return;
-                            case "Email already exists!":
-                                form.setError('email', {
-                                    type: 'manual',
-                                    message: 'Email already exists! Enter a different one.',
-                                }, {shouldFocus: true});
-                                setError('email');
-                                return;
-                            default:
-                                throw new Error("An unknown error occurred.");
-                        }
 
-                    })
+                    switch (data.message){
+                        case "Username already exists!":
+                            form.setError('username', {
+                                type: 'manual',
+                                message: 'Username already exists! Enter a different one.',
+                            }, {shouldFocus: true});
+                            setError('username');
+                            return;
+                        case "Email already exists!":
+                            form.setError('email', {
+                                type: 'manual',
+                                message: 'Email already exists! Enter a different one.',
+                            }, {shouldFocus: true});
+                            setError('email');
+                            return;
+                        default:
+                            throw new Error("An unknown error occurred.");
+                    }
 
-                   
-                    
-    
                 }
                 throw new Error(`Error: ${response.statusText}`);
             }
-
-            console.log(data);
+            setRegister(true);
             return data; // Handle your response data as needed
         } catch (error) {
             console.error('Failed to Register:', error);
@@ -139,6 +137,28 @@ function Register() {
  
     return (
     <>
+        {register &&
+        <div className="flex flex-col items-center space-y-5">
+            <div className="size-2/5">
+                <DotLottieReact
+                    src="/ThumbsUp.lottie"
+                    speed={.5}
+                    loop
+                    autoplay
+                    />
+            </div>
+            
+            <h1>Your account has been registered!</h1>
+            <Button onClick={() => setLogin(true)}> Click here to log in! </Button>
+            {login && <Navigate to="/Login"></Navigate>}
+            
+        </div>
+    
+
+        }
+        {!register && 
+
+        
         <div className="flex flex-col items-center space-y-4">
             <div className="flex flex-col items-center">
                 <img width={100} src='..\book-heart.svg'></img>
@@ -205,7 +225,9 @@ function Register() {
                                 <FormItem>
                                 <FormLabel>Email</FormLabel>
                                 <FormControl>
-                                    <Input className=" min-w-100" type="email" placeholder="Email" {...field} />
+                                    <Input className=" min-w-100" type="email" placeholder="Email" {...field} onChange={(e) => {
+                                        field.onChange(e);
+                                        setError('')}} />
                                 </FormControl>
                                 <FormMessage />
                                 </FormItem>
@@ -252,6 +274,8 @@ function Register() {
 
             
         </div>
+
+        }
     </>
     
     

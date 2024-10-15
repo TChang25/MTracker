@@ -6,12 +6,16 @@ import Root from './Root.tsx';
 import Dashboard from './Dashboard.tsx';
 import Login from './Login.tsx';
 import Register from './Register.tsx';
+import { AuthProvider } from './AuthProvider.tsx';
+import ProtectedRoute from './ProtectedRoute.tsx';
 
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Root />,
+    element: (
+      <Root />
+    ),
     children: [
       {
         path: "Login",
@@ -23,7 +27,11 @@ const router = createBrowserRouter([
       },
       {
         path: "Dashboard",
-        element: <Dashboard />,
+        element: (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ),
       },
     ],
   },
@@ -31,6 +39,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-     <RouterProvider router={router} />
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
   </StrictMode>,
 )

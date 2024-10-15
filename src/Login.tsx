@@ -14,7 +14,9 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent } from "./components/ui/card"
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "./AuthProvider"
+import { useEffect } from "react"
 
 const formSchema = z.object({
     username: z.string().min(2, {
@@ -26,6 +28,15 @@ const formSchema = z.object({
 });
 
 function Login() {
+    const { login, loading, isAuthenticated } = useAuth();
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            // Redirect to dashboard if the user is already logged in
+            navigate('/Dashboard');
+        }
+    }, [isAuthenticated, navigate]);
 
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -35,35 +46,43 @@ function Login() {
         },
     })
 
-    async function onSubmit(values: z.infer<typeof formSchema>) {
-        // Get the base URL (pathname without the current route)
-        const endpoint = '/api/login';
+    async function authenticate(){
+        
+        const endpoint = '/api/verify';
         const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); 
         let url = baseUrl + endpoint
-        console.log(url);
-        try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-            'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(values),
-        });
 
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        console.log(response);
-        
-        const data = await response.json();
-        console.log(data);
-        return data; // Handle your response data as needed
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+                credentials: 'include',
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.statusText}`);
+            }
+            const data = await response.json();
+            console.log('Authenticating token..')
+            console.log(data);
 
         } catch (error) {
-        console.error('Failed to Sign in:', error);
-        throw error; // Optionally re-throw or handle the error
+            console.error('Failed to Sign in:', error);
+            throw error; // Optionally re-throw or handle the error
         }
-        console.log(values)
+    }
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+
+        try {
+            console.log('Attempting sign-in')
+            await login(values.username, values.password);
+            console.log('Log in successful!')
+            console.log('Attempting authentication')
+            await authenticate()
+            console.log('Authentication Success!')
+        } catch (err) {
+            console.log(err + 'Login failed. Please try again.');
+        }
+
     }
 
     return (
@@ -107,7 +126,7 @@ function Login() {
                             />
 
                             
-                            <Button className="min-w-full" type="submit">Sign in</Button>
+                            <Button className="min-w-full" type="submit" disabled={loading}> {loading ? 'Signing in...' : 'Sign in'}</Button>
                         </form>
                     </Form>
                     <NavLink to="/Register" className="text-sm font-medium leading-none cursor-pointer select-none"> Don't have an account?</NavLink>

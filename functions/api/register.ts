@@ -27,7 +27,11 @@ export async function onRequestPost(context) {
     const existingUserRes = await existingUserStmt.bind(json.username).first();
 
     if (existingUserRes.count > 0) {
-        return new Response("Username already exists!", { status: 409 });
+
+        return new Response(JSON.stringify({ message: "Username already exists!" }), {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
     // Check for duplicate email 
@@ -35,7 +39,10 @@ export async function onRequestPost(context) {
     const existingEmailRes = await existingEmailstmt.bind(json.email).first();
 
     if (existingEmailRes.count > 0) {
-        return new Response("Email already exists!", { status: 409 });
+        return new Response(JSON.stringify({ message: "Email already exists!" }), {
+            status: 409,
+            headers: { "Content-Type": "application/json" },
+        });
     }
 
 
