@@ -18,7 +18,7 @@ export async function onRequestGet(context) {
 
     // Access a specific cookie
     const token = cookies['jwt'];
-
+    
     // Create a JSON response if token is not found
     if (!token){
         

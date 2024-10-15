@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
 import Logout from "./components/ui/Logout";
-import { useAuth } from "./AuthProvider";
+import { useUser } from "./UserContext";
+import { ProgressWithValue } from "./components/ProgressWithValue";
 
 
 // Function to handle the button click
@@ -17,7 +18,12 @@ export default function Dashboard() {
 
     const [isDisabled, setIsDisabled] = useState(true); // State to manage button disabled status
     const [lastCheckInDate, setLastCheckInDate] = useState('');
-    const { user } = useAuth();
+    const [numberOfTotalDays, setNumberOfTotalDays] = useState(0);
+    const [streak, setStreaks] = useState(0);
+    
+    const [hours, setHours] = useState(250);
+    const [progress, setProgress] = useState((hours/10000) * 100);
+    const identity = useUser();
 
     const today = new Date();
     const formattedToday = today.toLocaleDateString('en-CA', options);
@@ -55,7 +61,7 @@ export default function Dashboard() {
         setIsDisabled(lastCheckInDate === formattedToday);
     }, [lastCheckInDate, formattedToday]);
 
-
+    console.log(identity);
 
     const handleClick = async (today: String) => {
         const hoursWorked = 1;
@@ -95,18 +101,18 @@ export default function Dashboard() {
     return ( 
     <>
         
-        <div className="grid grid-cols-4 gap-4">
-            <div className="col-start-2 col-end-4">
+        <div className="grid grid-cols-12 gap-4">
+            <div className="col-start-3 col-end-9">
                 <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                    Hello, {user}
+                    Hello, {identity.user?.first_name}
                 </h1>
             </div>
-            <div className="col-start-4 col-end-5">
+            <div className="col-start-10 col-end-11">
                 <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
                     <Logout></Logout>
                 </h1>
             </div>
-            <div className="col-start-2 col-end-4">
+            <div className="col-start-3 col-end-10">
                 <Card>
                     <CardHeader>
                         <CardTitle>
@@ -125,6 +131,80 @@ export default function Dashboard() {
                         <Button onClick={() => handleClick(formattedToday)} disabled={isDisabled}>
                             Check-In
                         </Button>
+                    </CardFooter>
+                </Card>
+            </div>
+
+            <div className="col-start-3 col-end-5">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex flex-direction-row place-content-between">
+                            <span className="self-center"> Total days </span> <img width={45} src='..\calendar.svg'></img>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="">
+                        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+                            {numberOfTotalDays}
+                        </h2>
+                    </CardContent>
+                    <CardFooter>
+
+                    </CardFooter>
+                </Card>
+            </div>
+            <div className="col-start-5 col-end-7">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex flex-direction-row place-content-between">
+                            <span className="self-center"> Current Streak </span> <img width={45} src='..\fire.svg'></img>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="">
+                        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ">
+                            {streak}
+                        </h2>
+                    </CardContent>
+                    <CardFooter>
+
+                    </CardFooter>
+                </Card>
+            </div>
+            <div className="col-start-7 col-end-10">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex flex-direction-row place-content-between">
+                            <span className="self-center"> Total Hours of Work </span> <img width={45} src='..\fire.svg'></img>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="">
+                        <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ">
+                            {hours}
+                        </h2>
+                    </CardContent>
+                    <CardFooter>
+
+                    </CardFooter>
+                </Card>
+            </div>
+            <div className="col-start-3 col-end-10">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex flex-direction-row place-content-between">
+                            <span className="self-center"> 10,000 Hour Mastery Progress </span> <img width={45} src='..\star-rainbow.svg'></img>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent className="">
+
+                    <div className="w-full space-y-2 px-10">
+                        <div>
+                            <div className="text-blue-500"> {hours} / 10,000</div>
+                            <ProgressWithValue value={progress}></ProgressWithValue>
+                        </div>
+                    </div>
+                        
+                    </CardContent>
+                    <CardFooter>
+
                     </CardFooter>
                 </Card>
             </div>

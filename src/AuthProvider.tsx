@@ -9,7 +9,7 @@ interface AuthContextType {
     loading: boolean;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); 
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
