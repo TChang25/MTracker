@@ -101,17 +101,13 @@ export default function Dashboard() {
     return ( 
     <>
         
-        <div className="grid grid-cols-12 gap-4">
+        <div className="grid grid-cols-12 gap-4 mt-10">
             <div className="col-start-3 col-end-9">
                 <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
                     Hello, {identity.user?.first_name}
                 </h1>
             </div>
-            <div className="col-start-10 col-end-11">
-                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                    <Logout></Logout>
-                </h1>
-            </div>
+
             <div className="col-start-3 col-end-10">
                 <Card>
                     <CardHeader>
@@ -173,7 +169,7 @@ export default function Dashboard() {
                 <Card>
                     <CardHeader>
                         <CardTitle className="flex flex-direction-row place-content-between">
-                            <span className="self-center"> Total Hours of Work </span> <img width={45} src='..\fire.svg'></img>
+                            <span className="self-center"> Total Hours of Work </span> <img width={45} src='..\power.svg'></img>
                         </CardTitle>
                     </CardHeader>
                     <CardContent className="">
@@ -208,8 +204,14 @@ export default function Dashboard() {
                     </CardFooter>
                 </Card>
             </div>
-        
+            <div className="col-start-10 col-end-12">
 
+            </div>
+            <div className="col-start-9 col-end-10">
+                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
+                    <Logout></Logout>
+                </h1>
+            </div>
         </div>
         
         
