@@ -18,11 +18,11 @@ export default function Dashboard() {
 
     const [isDisabled, setIsDisabled] = useState(true); // State to manage button disabled status
     const [lastCheckInDate, setLastCheckInDate] = useState('');
-    const [numberOfTotalDays, setNumberOfTotalDays] = useState(0);
-    const [streak, setStreaks] = useState(0);
+    const numberOfTotalDays = (0);
+    const streak = (0);
     
-    const [hours, setHours] = useState(250);
-    const [progress, setProgress] = useState((hours/10000) * 100);
+    const hours = (250);
+    const progress = ((hours/10000) * 100);
     const identity = useUser();
 
     const today = new Date();
