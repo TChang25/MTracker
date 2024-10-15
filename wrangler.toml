@@ -4,8 +4,8 @@ pages_build_output_dir = "dist"
 compatibility_date = "2024-09-23"
 compatibility_flags = [ "nodejs_compat_v2" ]
 
-[env]
-production = { }
+[env.production]
+d1_databases = { db1 = { binding = "DB", database_name="mtracker", database_id = "e88e2ecd-d42e-460a-8746-da4c93a59d4f" } }
 
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
