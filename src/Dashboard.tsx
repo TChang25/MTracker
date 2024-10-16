@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./components/ui/card";
 import Logout from "./components/ui/Logout";
@@ -35,6 +35,7 @@ interface streakObj{
 export default function Dashboard() {
     const [isDisabled, setIsDisabled] = useState(true); // State to manage button disabled status
     const [lastCheckInDate, setLastCheckInDate] = useState('');
+    const [checkIn, setCheckIn] = useState(false);
 
     const [streaks, setStreaks] = useState([]);
     const [longestStreak, setLongestStreak] = useState(0);
@@ -43,6 +44,8 @@ export default function Dashboard() {
     const [hours, setHours] = useState(0);
     const [progress, setProgress] = useState(0);
     const identity = useUser();
+
+    const hoursInput = useRef<HTMLInputElement>(null);
 
     const today = new Date();
     const formattedToday = today.toLocaleDateString('en-CA', options);
@@ -53,25 +56,29 @@ export default function Dashboard() {
         let url = baseUrl + endpoint
         // Function to fetch the latest check-in date
         const fetchLastCheckInDate = async () => {
-          try {
-            const response = await fetch(url, {
-                method: 'GET',
-                credentials: 'include', // Include HTTP-only cookies
-            });
-    
-            if (response.ok) {
-                const result = await response.json();
-                setLastCheckInDate(result.latest_date); // Set the last check-in date
-            } else {
-                console.error('Failed to fetch the last check-in date.');
+            setIsDisabled(true);
+           
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    credentials: 'include', // Include HTTP-only cookies
+                });
+        
+                if (response.ok) {
+                    const result = await response.json();
+                    setLastCheckInDate(result.latest_date); // Set the last check-in date
+                    setIsDisabled(true);
+                } else {
+                    console.error('Failed to fetch the last check-in date.');
+                }
+            } catch (error) {
+                console.error('Error fetching last check-in date:', error);
+                setIsDisabled(false);
             }
-          } catch (error) {
-            console.error('Error fetching last check-in date:', error);
-          }
         };
     
         fetchLastCheckInDate();
-    }, []);
+    }, [checkIn]);
 
     useEffect(() => {
         const fetchStreaks = async () => {
@@ -95,7 +102,7 @@ export default function Dashboard() {
         };
 
         fetchStreaks();
-    }, [identity]); // Dependency array, fetch when userId changes
+    }, [identity, checkIn]); // Dependency array, fetch when userId or when user checks in
     
     useEffect(() => {
         setIsDisabled(lastCheckInDate === formattedToday);
@@ -182,17 +189,16 @@ export default function Dashboard() {
 
 
     const handleClick = async (today: String) => {
-        const hoursWorked = 1;
-      
-        // Prepare the data to send
+        const hoursWorked = hoursInput.current?.value ? hoursInput.current?.value : .5;
+        // Prepare the data to send/*
         const data = {
           date_worked: today,
           hours_worked: hoursWorked,
         };
-    
+        
         const endpoint = '/api/checkin';
         const baseUrl = window.location.href.split('/').slice(0, -1).join('/'); 
-        let url = baseUrl + endpoint
+        let url = baseUrl + endpoint;
         try {
           const response = await fetch(url, {
             method: 'POST',
@@ -207,6 +213,7 @@ export default function Dashboard() {
       
           if (response.ok) {
             alert(`Streak logged successfully! ID: ${result.id}`);
+            setCheckIn(true);
           } else {
             alert(`Error: ${result.error}`);
           }
@@ -214,6 +221,7 @@ export default function Dashboard() {
           console.error('Error:', error);
           alert('An error occurred while logging the streak.');
         }
+    
     };
     
     return ( 
@@ -245,7 +253,7 @@ export default function Dashboard() {
                         <Button onClick={() => handleClick(formattedToday)} disabled={isDisabled}>
                             Check-In
                         </Button>
-                        <Input  max={24} min={.5} step={.5} placeholder="Enter your hours for checking in." type="number">
+                        <Input disabled={isDisabled} ref={hoursInput}  max={24} min={.5} step={.5} placeholder="Enter your hours for checking in. By default will be '.5'"type="number">
                         </Input>
                     </CardFooter>
                 </Card>
@@ -342,10 +350,10 @@ export default function Dashboard() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {streaks.map((streak:streakObj) => {
+                                {streaks.map((streak:streakObj, index:number) => {
                                     return (
                                         <TableRow key={streak.id}>
-                                            <TableCell> {streak.id} </TableCell>
+                                            <TableCell> {index} </TableCell>
                                             <TableCell> {streak.date_worked}</TableCell>
                                             <TableCell> {streak.hours_worked}</TableCell>
                                         </TableRow>
