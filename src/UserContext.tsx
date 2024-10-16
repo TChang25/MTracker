@@ -3,10 +3,11 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import {useAuth } from './AuthProvider'; // Adjust the import path as needed
 
 interface UserData {
-  first_name: string;
-  last_name: string;
-  email: string;
-  username: string;
+    id: number;
+    first_name: string;
+    last_name: string;
+    email: string;
+    username: string;
 }
 
 interface UserContextType {

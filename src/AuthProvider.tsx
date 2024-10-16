@@ -21,18 +21,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         // Check if the user is authenticated when the app loads
         const checkAuth = async () => {
+            setLoading(true);
             const response = await fetch(baseUrl + '/api/verify', { credentials: 'include' });
-            if (response.ok) {
-                const data = await response.json();
-                setUser(data.user.name); // Assuming your API returns the username
-                setIsAuthenticated(true);
-                console.log('This user ' + data.user.name + ' is authenticated!');
+            try{
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log(data.user)
+                    setUser(data.user); // Assuming your API returns the username
+                    setIsAuthenticated(true);
+                    console.log('This user ' + data.user + ' is authenticated!');
+                    setLoading(false);
+                }
+                else{
+                    console.log('User is not authenticated');
+                    setLoading(false);
+                }
+            }
+            catch(e){
+                console.log('Checkin Error');
                 setLoading(false);
             }
-            else{
-                console.log('User is not authenticated');
-                setLoading(false);
-            }
+            
             
             
         };

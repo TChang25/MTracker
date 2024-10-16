@@ -45,7 +45,6 @@ function Login() {
             password: ""
         },
     })
-
     async function authenticate(){
         
         const endpoint = '/api/verify';

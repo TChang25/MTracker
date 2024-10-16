@@ -1,4 +1,5 @@
 import * as jwt from "jsonwebtoken";
+import * as global from "./global";
 export async function onRequestGet(context) {
     // Get cookies from the request
     const {request} = context; // extract request
@@ -17,28 +18,20 @@ export async function onRequestGet(context) {
     }
 
     // Access a specific cookie
-    const token = cookies['jwt'];
+    const token = await global.getJWTToken(context)
     
     // Create a JSON response if token is not found
-    if (!token){
-        
-        const responseData = {
-            message: 'Unauthorized',
-        };
-        return new Response(JSON.stringify(responseData), {
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            status: 401,
-        });
+    let JSONResponse = await global.responseTokenExists(token);
+    if (JSONResponse){
+        return JSONResponse;
     }
-    
-    const secret = `${context.env.TOKEN_SECRET}`; // Use your actual secret
 
     try {
         // Verify token and decode payload
-        const payload = jwt.verify(token, secret);
-        
+        const payload = await global.decodeJWTToken(context, token);
+        if (!payload){
+            throw new Error("Token could not be verified");
+        }
         // If verification is successful, return the payload
         return new Response(JSON.stringify({ message: "Access granted", user: payload }), {
             headers: { 'Content-Type': 'application/json' },

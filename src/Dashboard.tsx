@@ -5,7 +5,16 @@ import Logout from "./components/ui/Logout";
 import { useUser } from "./UserContext";
 import { ProgressWithValue } from "./components/ProgressWithValue";
 
-
+import {
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+  } from "@/components/ui/table"
+import { Input } from "./components/ui/input";
 // Function to handle the button click
 
 const options: Intl.DateTimeFormatOptions = {
@@ -14,15 +23,25 @@ const options: Intl.DateTimeFormatOptions = {
     day: '2-digit',
 };
 
-export default function Dashboard() {
+interface streakObj{
+    id: number;
+    user_id: number;
+    date_worked: string;
+    hours_worked: number;
+    work_flag: number;
 
+}
+
+export default function Dashboard() {
     const [isDisabled, setIsDisabled] = useState(true); // State to manage button disabled status
     const [lastCheckInDate, setLastCheckInDate] = useState('');
-    const numberOfTotalDays = (0);
-    const streak = (0);
-    
-    const hours = (250);
-    const progress = ((hours/10000) * 100);
+
+    const [streaks, setStreaks] = useState([]);
+    const [longestStreak, setLongestStreak] = useState(0);
+    const [longestStreakFromToday, setLongestStreakFromToday] = useState(0);
+
+    const [hours, setHours] = useState(0);
+    const [progress, setProgress] = useState(0);
     const identity = useUser();
 
     const today = new Date();
@@ -54,14 +73,113 @@ export default function Dashboard() {
         fetchLastCheckInDate();
     }, []);
 
-    
+    useEffect(() => {
+        const fetchStreaks = async () => {
+            try {
+                const response = await fetch(`/api/allstreaks?id=${identity.user?.id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                });
 
+                if (!response.ok) {
+                    throw new Error(`Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                setStreaks(data);
+            } catch (err) {
+                console.error('Error fetching streaks:', err);
+            }
+        };
+
+        fetchStreaks();
+    }, [identity]); // Dependency array, fetch when userId changes
     
     useEffect(() => {
         setIsDisabled(lastCheckInDate === formattedToday);
     }, [lastCheckInDate, formattedToday]);
 
-    console.log(identity);
+    useEffect(() => {
+        function countConsecutiveDaysWorked(streaks: streakObj[]): number {
+            // Extract and normalize unique dates
+            const uniqueDates = Array.from(
+                new Set(streaks.map(streak => new Date(streak.date_worked).setHours(0, 0, 0, 0)))
+            );
+        
+            // Sort the dates
+            uniqueDates.sort((a, b) => a - b);
+        
+            let maxConsecutive = 0;
+            let currentConsecutive = 1;
+        
+            for (let i = 1; i < uniqueDates.length; i++) {
+                // Check if the current date is the next day of the previous date
+                const diff = (uniqueDates[i] - uniqueDates[i - 1]) / (1000 * 60 * 60 * 24);
+                if (diff === 1) {
+                    currentConsecutive++;
+                } else {
+                    maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+                    currentConsecutive = 1; // Reset for the next sequence
+                }
+            }
+        
+            // Check the last sequence
+            maxConsecutive = Math.max(maxConsecutive, currentConsecutive);
+        
+            return maxConsecutive;
+        }
+        setLongestStreak(countConsecutiveDaysWorked(streaks));
+    }, [streaks])
+
+
+    useEffect(() => {
+        function countStreakFromToday(streaks: streakObj[]): number {
+            // Get today's date normalized
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+        
+            // Extract and normalize unique dates from the streaks
+            const uniqueDates = Array.from(
+                new Set(streaks.map(streak => new Date(streak.date_worked).setHours(0, 0, 0, 0)))
+            );
+        
+            // Sort the dates
+            uniqueDates.sort((a, b) => a - b);
+        
+            let streakCount = 0;
+            console.log(uniqueDates);
+            // Iterate from today backwards
+            for (let i = uniqueDates.length - 1; i >= 0; i--) {
+                const diff = (today.getTime() - uniqueDates[i]) / (1000 * 60 * 60 * 24);
+                
+                // Check if the date is today or a previous consecutive day
+                if (diff === streakCount || diff === streakCount + 1) {
+                    streakCount++;
+                } else if (diff > streakCount) {
+                    break; // Stop if a non-consecutive day is encountered
+                }
+            }
+        
+            return streakCount;
+        }
+        setLongestStreakFromToday(countStreakFromToday(streaks));
+    }, [streaks])
+
+    useEffect(() => {
+        function calculateTotalHoursWorked(streaks: streakObj[]): number {
+            return streaks.reduce((total, streak) => total + streak.hours_worked, 0);
+        }
+        setHours(calculateTotalHoursWorked(streaks));
+    },[streaks])
+    
+    useEffect(() => {
+        setProgress(() => {
+            return (hours/10000) * 100;
+        })
+    },[hours])
+
 
     const handleClick = async (today: String) => {
         const hoursWorked = 1;
@@ -120,13 +238,15 @@ export default function Dashboard() {
                         Today's date: {formattedToday}
                         </p>
                         { lastCheckInDate ? <p className="text-green-400"> You last checked in on: {lastCheckInDate} </p> : <p className="text-red-400">No check in detected for this user.</p> }
-                        
+                        Your longest streak has been: {longestStreak}
                         
                     </CardContent>
                     <CardFooter>
                         <Button onClick={() => handleClick(formattedToday)} disabled={isDisabled}>
                             Check-In
                         </Button>
+                        <Input  max={24} min={.5} step={.5} placeholder="Enter your hours for checking in." type="number">
+                        </Input>
                     </CardFooter>
                 </Card>
             </div>
@@ -140,7 +260,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="">
                         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
-                            {numberOfTotalDays}
+                            {streaks.length}
                         </h2>
                     </CardContent>
                     <CardFooter>
@@ -157,7 +277,7 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="">
                         <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0 ">
-                            {streak}
+                            {longestStreakFromToday}
                         </h2>
                     </CardContent>
                     <CardFooter>
@@ -204,13 +324,44 @@ export default function Dashboard() {
                     </CardFooter>
                 </Card>
             </div>
-            <div className="col-start-10 col-end-12">
+            <div className="col-start-3 col-end-10">
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="flex flex-direction-row place-content-between">
+                            <span className="self-center"> Streak History </span> <img width={45} src='..\list-check.svg'></img>
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableCaption>A list of your recent streaks.</TableCaption>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead className="w-[100px]">ID</TableHead>
+                                    <TableHead>Check-in Date</TableHead>
+                                    <TableHead>Hours Logged</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {streaks.map((streak:streakObj) => {
+                                    return (
+                                        <TableRow key={streak.id}>
+                                            <TableCell> {streak.id} </TableCell>
+                                            <TableCell> {streak.date_worked}</TableCell>
+                                            <TableCell> {streak.hours_worked}</TableCell>
+                                        </TableRow>
 
+                                    )
+                                })}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    <CardFooter>
+
+                    </CardFooter>
+                </Card>
             </div>
-            <div className="col-start-9 col-end-10">
-                <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl">
-                    <Logout></Logout>
-                </h1>
+            <div className="col-start-9 col-end-10 w-full">
+                <Logout></Logout>
             </div>
         </div>
         
