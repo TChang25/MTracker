@@ -48,7 +48,9 @@ export async function onRequestPost(context) {
 
     const cookie = `jwt=${jwt_token}; HttpOnly; Secure; SameSite=Strict; Path=/;`;
 
-    return new Response(JSON.stringify({ message: "Login successful!" }), {
+    return new Response(JSON.stringify({ 
+        message: "Login successful!",
+     }), {
         status: 200,
         headers: { 
             "Content-Type": "application/json",
