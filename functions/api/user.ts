@@ -1,6 +1,6 @@
 // src/index.ts
 import jwt from 'jsonwebtoken';
-
+import * as global from "./global";
 interface UserData {
   first_name: string;
   last_name: string;
@@ -10,38 +10,24 @@ interface UserData {
 
 
 export async function onRequestGet(context) {
-    const JWT_SECRET = `${context.env.TOKEN_SECRET}`; // Replace with your actual secret
-    const {request} = context; // extract request
-    const cookieHeader = request.headers.get('Cookie');
-
-    // Parse cookies
-    const cookies: Record<string, string> = {};
-    if (cookieHeader) {
-        cookieHeader.split('; ').forEach(cookie => {
-            const [name, value] = cookie.split('=');
-            if (name && value) {
-                cookies[name] = decodeURIComponent(value);
-            }
-        });
-    }
-
     // Access a specific cookie
-    const token = cookies['jwt'];
+    const token = await global.getJWTToken(context)
     
-    // Validate the cookie and verify the JWT
-    if (!token) {
-        return new Response('Unauthorized', { status: 401 });
+    // Create a JSON response if token is not found
+    let JSONResponse = await global.responseTokenExists(token);
+    if (JSONResponse){
+        return JSONResponse;
     }
 
     try {
-        const username = jwt.verify(token, JWT_SECRET).name; // Adjust the type as needed
+        const username = await global.decodeJWTToken(context, token); // string
         // Use context.env.DB to prepare and execute the query
         const userQuery = context.env.DB.prepare(
-        'SELECT first_name, last_name, email, username FROM user WHERE username = ?',
+        'SELECT id, first_name, last_name, email, username FROM user WHERE username = ?',
         );
 
         const userData = await userQuery.bind(username).run(); // Use the username from the decoded token
-        console.log(userData.results[0]);
+        console.log("User retrieved: " + JSON.stringify(userData.results[0]));
         if (userData) {
             return new Response(JSON.stringify(userData.results[0]), {
                 headers: {
