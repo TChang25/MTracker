@@ -31,7 +31,7 @@ interface streakObj{
     work_flag: number;
 
 }
-
+// adj
 export default function Dashboard() {
     const [isDisabled, setIsDisabled] = useState(true); // State to manage button disabled status
     const [lastCheckInDate, setLastCheckInDate] = useState('');
