@@ -9,6 +9,7 @@ import Register from './Register.tsx';
 import { AuthProvider } from './AuthProvider.tsx';
 import ProtectedRoute from './ProtectedRoute.tsx';
 import { UserProvider } from './UserContext.tsx';
+import Friends from './Friends.tsx';
 
 
 const router = createBrowserRouter([
@@ -34,6 +35,14 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: "Friends",
+        element: (
+          <ProtectedRoute>
+            <Friends/>
+          </ProtectedRoute>
+        )
+      }
     ],
   },
 ]);
