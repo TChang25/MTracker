@@ -3,7 +3,9 @@ import * as global from "./global";
 export async function onRequestGet(context) {
     // Get cookies from the request
     const {request} = context; // extract request
-    console.log(`Request received: ${request.url}`);
+    // BEFORE
+    // console.log(`Request received: ${request.url}`);
+    console.log({requestUrl: request.url})
     const cookieHeader = request.headers.get('Cookie');
 
     // Parse cookies

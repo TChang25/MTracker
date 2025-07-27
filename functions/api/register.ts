@@ -39,6 +39,8 @@ export async function onRequestPost(context) {
     const existingEmailRes = await existingEmailstmt.bind(json.email).first();
 
     if (existingEmailRes.count > 0) {
+        
+        console.error({message: "Email already exists!", status: 409, existingEmailResCount: existingEmailRes})
         return new Response(JSON.stringify({ message: "Email already exists!" }), {
             status: 409,
             headers: { "Content-Type": "application/json" },
