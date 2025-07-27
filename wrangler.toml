@@ -11,7 +11,3 @@ d1_databases = [ { binding = "DB", database_name="mtracker", database_id = "e88e
 binding = "DB" # i.e. available in your Worker on env.DB
 database_name = "mtracker"
 database_id = "e88e2ecd-d42e-460a-8746-da4c93a59d4f"
-
-[observability]
-enabled = true
-head_sampling_rate = 1 # optional. default = 1.
