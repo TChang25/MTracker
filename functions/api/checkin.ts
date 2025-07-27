@@ -18,7 +18,9 @@ const {request} = context; // extract request
 const handlePost = async (context) => {
     // Get cookies from the request
     const {request, env} = context;
-    console.log(`Request received: ${request.url}`);
+    // BEFORE
+    // console.log(`Request received: ${request.url}`);
+    console.log({RequestURL: request.url})
 
 
     // Access a specific cookie

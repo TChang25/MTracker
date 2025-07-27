@@ -47,7 +47,6 @@ export async function onRequestPost(context) {
     const jwt_token = await generateAccessToken(json.username, `${context.env.TOKEN_SECRET}`)
 
     const cookie = `jwt=${jwt_token}; HttpOnly; Secure; SameSite=Strict; Path=/;`;
-
     return new Response(JSON.stringify({ 
         message: "Login successful!",
      }), {
